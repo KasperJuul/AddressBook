@@ -10,11 +10,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options => 
     options.UseNpgsql(DataUtility.GetConnectionString(builder.Configuration)));
 
-builder.Services.AddScoped<IImageService, BasicImageService>();
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+builder.Services.AddScoped<IImageService, BasicImageService>();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+
+var dbContext = app.Services.CreateScope().ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+await dbContext.Database.MigrateAsync();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
